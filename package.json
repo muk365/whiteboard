@@ -1,0 +1,11 @@
+{
+  "name": "whiteboard-app",
+  "version": "1.0.0",
+  "description": "Tableau Blanc Collaboratif avec FastAPI et Tailwind CSS",
+  "scripts": {
+    "tailwind": "tailwindcss -i ./frontend/input.css -o ./frontend/static/css/style.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
