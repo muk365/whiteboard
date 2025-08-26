@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import os
 import json
 from typing import Dict, List, Tuple
 
-# --- Configuration de base (inchangée) ---
+# --- Configuration de base ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, '..', 'frontend')
 STATIC_DIR = os.path.join(FRONTEND_DIR, 'static')
@@ -16,11 +16,11 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=FRONTEND_DIR)
 
-# --- Stockage de l'état (inchangé) ---
+# --- Stockage de l'état des tableaux ---
 room_states: Dict[str, List[Dict]] = {}
 
 
-# --- Gestionnaire de connexions WebSocket AMÉLIORÉ ---
+# --- Gestionnaire de connexions WebSocket ---
 class ConnectionManager:
     def __init__(self):
         # Stocke maintenant (WebSocket, username, client_id)
@@ -55,18 +55,24 @@ class ConnectionManager:
             for connection, _, _ in self.active_connections[room_id]:
                 await connection.send_text(message)
 
-
 manager = ConnectionManager()
 
-# --- Route HTTP (inchangée) ---
+
+# --- Route pour servir robots.txt ---
+@app.get("/robots.txt", response_class=FileResponse)
+async def get_robots_txt():
+    return os.path.join(STATIC_DIR, "robots.txt")
+
+
+# --- Route HTTP principale ---
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# --- Route WebSocket (FINALE) ---
+
+# --- Route WebSocket ---
 @app.websocket("/ws/{room_id}/{username}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
-    # Génère un ID unique pour cette session client
     client_id = str(id(websocket))
     await manager.connect(websocket, room_id, username, client_id)
     await manager.broadcast_user_list(room_id)
@@ -78,21 +84,14 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
             data_str = await websocket.receive_text()
             message = json.loads(data_str)
             
-            # Si c'est un message de curseur, on l'enrichit avec les infos du sender
             if message["type"] == "cursor:move":
                 enriched_message = {
                     "type": "cursor:move",
-                    "data": {
-                        "x": message["data"]["x"],
-                        "y": message["data"]["y"],
-                        "username": username,
-                        "client_id": client_id
-                    }
+                    "data": { "x": message["data"]["x"], "y": message["data"]["y"], "username": username, "client_id": client_id }
                 }
                 await manager.broadcast(json.dumps(enriched_message), room_id, websocket)
-                continue # On ne stocke pas les positions de curseur
+                continue
 
-            # Logique de persistance des dessins (inchangée)
             current_state = room_states.get(room_id, [])
             msg_type = message.get("type")
             msg_data = message.get("data")
@@ -111,6 +110,5 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
         if disconnected_info:
             _, disconnected_client_id = disconnected_info
             await manager.broadcast_user_list(room_id)
-            # Notifie les autres que ce curseur doit être retiré
             await manager.broadcast(json.dumps({"type": "cursor:remove", "data": {"client_id": disconnected_client_id}}), room_id, websocket)
         print(f"Client '{username}' ({client_id}) déconnecté de la salle {room_id}")
