@@ -23,22 +23,30 @@
         #side-menu { transition: transform 0.3s ease-in-out; }
         #menu-backdrop { transition: opacity 0.3s ease-in-out; }
         .remote-cursor { transition: transform 0.1s ease-out; }
+
+        /* NOUVEAU: Styles pour les animations d'apparition */
+        .info-content-item {
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        #info-panel.is-open .info-content-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white overflow-hidden">
 
     <main id="app-container" class="relative w-screen h-screen">
-        
+        <!-- ... Tout le contenu de l'application (menu, toolbar, canvas) est inchangé ... -->
         <button id="menu-toggle-btn" class="absolute top-4 left-4 z-40 p-3 bg-gray-800/80 backdrop-blur-sm rounded-full text-white hover:bg-gray-700 transition-all border border-gray-700"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg></button>
         <div id="menu-backdrop" class="hidden fixed inset-0 bg-black/50 z-20"></div>
         <div id="side-menu" class="fixed top-0 left-0 h-full w-72 bg-gray-900/90 backdrop-blur-lg border-r border-gray-700 shadow-2xl z-30 pt-20 px-6 pb-6 flex flex-col space-y-6 -translate-x-full"><h2 class="text-xl font-semibold text-white">Collaboration</h2><div><label for="username-input" class="text-sm font-medium text-gray-400">Votre Pseudo</label><input type="text" id="username-input" class="mt-1 w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"></div><div><label class="text-sm font-medium text-gray-400">ID de la Salle Actuelle</label><div class="mt-1 w-full bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-gray-300 font-mono text-sm break-words" id="current-room-id"></div></div><div><label for="join-room-input" class="text-sm font-medium text-gray-400">Rejoindre une Salle</label><div class="mt-1 flex space-x-2"><input type="text" id="join-room-input" placeholder="Coller un ID ici" class="flex-grow min-w-0 bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"><button id="join-room-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-500 transition-all">OK</button></div></div><div class="flex-grow flex flex-col min-h-0"><h3 class="text-sm font-medium text-gray-400 mb-2">Participants</h3><ul id="user-list" class="flex-grow overflow-y-auto space-y-2 pr-2"></ul></div></div>
-        
         <div id="toolbar" class="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-gray-800/80 backdrop-blur-sm shadow-2xl rounded-full p-2 flex items-center space-x-1 border border-gray-700"><button class="tool-btn p-3 rounded-full" data-tool="select" title="Sélectionner"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 pointer-events-none"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" /></svg></button><button class="tool-btn p-3 rounded-full" data-tool="pencil" title="Dessiner"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg></button><button class="tool-btn p-3 rounded-full" data-tool="eraser" title="Gommer"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 pointer-events-none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3"></path><path d="M18 13.3l-6.3 -6.3"></path></svg></button><div class="h-6 w-px bg-gray-600 mx-1"></div><button id="color-picker-btn" class="p-3 rounded-full" title="Couleur du pinceau"><div id="color-indicator" class="w-5 h-5 rounded-full border-2 border-gray-400 pointer-events-none" style="background-color: white;"></div></button><button id="brush-size-btn" class="p-3 rounded-full" title="Taille du pinceau"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 pointer-events-none"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></button><div class="h-6 w-px bg-gray-600 mx-1"></div><button id="clear-all-btn" class="p-3 rounded-full text-red-400 hover:bg-red-500/20" title="Tout effacer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 pointer-events-none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></div>
-        
         <canvas id="whiteboard-canvas"></canvas>
         <div id="cursors-container" class="absolute inset-0 pointer-events-none z-50"></div>
         <div id="cursor-template" class="hidden absolute top-0 left-0 pointer-events-none remote-cursor flex items-center"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span class="ml-2 px-2 py-0.5 text-sm rounded-full whitespace-nowrap text-white" style="background-color: black;"></span></div>
-    
     </main>
 
     <button id="info-toggle-btn" class="fixed bottom-4 right-4 z-40 p-3 bg-gray-800/80 backdrop-blur-sm rounded-full text-white hover:bg-gray-700 transition-all border border-gray-700" title="À propos de cette application">
@@ -50,24 +58,33 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
         <div class="container mx-auto">
-            <div class="bg-yellow-900/50 border border-yellow-700 text-yellow-300 px-4 py-3 rounded-lg relative mb-8 flex items-start space-x-3">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 flex-shrink-0 mt-0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                <div>
-                    <h3 class="font-bold">Note sur l'hébergement</h3>
-                    <p class="text-sm">Cette application est hébergée sur l'offre gratuite de Render. Le serveur se met en veille après 15 minutes d'inactivité. Le premier chargement peut donc être lent (jusqu'à 30 secondes) et des déconnexions initiales sont possibles. Merci pour votre patience !</p>
+            
+            <!-- CORRIGÉ: Bannière informative en 2 colonnes -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 mb-8 info-content-item">
+                <div class="bg-yellow-900/50 border border-yellow-700 text-yellow-300 px-4 py-3 rounded-lg flex items-start space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 flex-shrink-0 mt-0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                    <div><h3 class="font-bold">Note sur l'hébergement</h3><p class="text-sm">Cette démo est sur l'offre gratuite de Render. Le serveur se met en veille après 15mn d'inactivité. Le premier chargement peut donc être lent (jusqu'à 30s) et des erreurs de connexion sont possibles. Merci de votre patience !</p></div>
+                </div>
+                <div class="bg-yellow-900/50 border border-yellow-700 text-yellow-300 px-4 py-3 rounded-lg flex items-start space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 flex-shrink-0 mt-0.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                    <div><h3 class="font-bold">Hosting Note</h3><p class="text-sm">This demo is hosted on Render's free tier. The server spins down after 15 mins of inactivity. The first load can be slow (up to 30s) and initial connection errors may occur. Thank you for your patience!</p></div>
                 </div>
             </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                <section>
-                    <h2 class="text-3xl font-bold text-white mb-4">Tableau Blanc Collaboratif en Temps Réel</h2>
-                    <p class="text-gray-300 mb-4">Libérez votre créativité avec notre outil de dessin en ligne. Conçu pour la collaboration instantanée, ce tableau blanc vous permet de partager vos idées, de brainstormer avec votre équipe et de visualiser vos projets sans effort. La technologie WebSocket assure que chaque trait est synchronisé à la vitesse de la lumière.</p>
-                    <ul class="space-y-2 text-gray-200"><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Propulsé par FastAPI pour une performance backend inégalée.</li><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Interface moderne et réactive créée avec Tailwind CSS.</li></ul>
-                </section>
-                <section>
-                    <h2 class="text-3xl font-bold text-white mb-4">Real-Time Collaborative Whiteboard</h2>
-                    <p class="text-gray-300 mb-4">Unleash your creativity with our online drawing tool. Built for instant collaboration, this whiteboard lets you share ideas, brainstorm with your team, and visualize projects effortlessly. WebSocket technology ensures every stroke is synchronized at the speed of light.</p>
-                    <ul class="space-y-2 text-gray-200"><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Powered by FastAPI for unparalleled backend performance.</li><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Modern and responsive interface built with Tailwind CSS.</li></ul>
-                </section>
+                <section class="info-content-item" style="transition-delay: 150ms;"><h2 class="text-3xl font-bold text-white mb-4">Tableau Blanc Collaboratif en Temps Réel</h2><p class="text-gray-300 mb-4">Libérez votre créativité avec notre outil de dessin en ligne. Conçu pour la collaboration instantanée, ce tableau blanc vous permet de partager vos idées, de brainstormer avec votre équipe et de visualiser vos projets sans effort. La technologie WebSocket assure que chaque trait est synchronisé à la vitesse de la lumière.</p><ul class="space-y-2 text-gray-200"><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Propulsé par FastAPI pour une performance backend inégalée.</li><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Interface moderne et réactive créée avec Tailwind CSS.</li></ul></section>
+                <section class="info-content-item" style="transition-delay: 300ms;"><h2 class="text-3xl font-bold text-white mb-4">Real-Time Collaborative Whiteboard</h2><p class="text-gray-300 mb-4">Unleash your creativity with our online drawing tool. Built for instant collaboration, this whiteboard lets you share ideas, brainstorm with your team, and visualize projects effortlessly. WebSocket technology ensures every stroke is synchronized at the speed of light.</p><ul class="space-y-2 text-gray-200"><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Powered by FastAPI for unparalleled backend performance.</li><li class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Modern and responsive interface built with Tailwind CSS.</li></ul></section>
+            </div>
+
+            <!-- NOUVEAU: Section Copyright -->
+            <div class="mt-12 pt-6 border-t border-gray-700 text-center text-gray-400 info-content-item" style="transition-delay: 450ms;">
+                <p class="flex items-center justify-center space-x-2">
+                    <span>© 2025</span>
+                    <a href="https://florent-bonelli.com" target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-300 hover:text-white transition-colors flex items-center group">
+                        <span>Florent Bonelli</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    </a>
+                </p>
             </div>
         </div>
     </footer>

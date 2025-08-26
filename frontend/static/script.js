@@ -26,7 +26,21 @@ window.addEventListener('DOMContentLoaded', () => {
     const infoToggleBtn = document.getElementById('info-toggle-btn');
     const infoPanel = document.getElementById('info-panel');
     const infoCloseBtn = document.getElementById('info-close-btn');
-    const toggleInfoPanel = () => { infoPanel.classList.toggle('translate-y-full'); };
+
+    // CORRIGÉ: Logique d'animation pour le panneau d'information
+    const toggleInfoPanel = () => {
+        const isOpen = infoPanel.classList.contains('is-open');
+        if (isOpen) {
+            infoPanel.classList.remove('is-open');
+            infoPanel.classList.add('translate-y-full');
+        } else {
+            infoPanel.classList.remove('translate-y-full');
+            // Léger délai pour que l'animation de slide commence avant celle du contenu
+            setTimeout(() => {
+                infoPanel.classList.add('is-open');
+            }, 50);
+        }
+    };
     infoToggleBtn.addEventListener('click', toggleInfoPanel);
     infoCloseBtn.addEventListener('click', toggleInfoPanel);
 
@@ -42,8 +56,8 @@ window.addEventListener('DOMContentLoaded', () => {
     let currentTool = 'pencil';
     let brushColor = '#FFFFFF';
     let brushSize = 4;
-    const pencilCursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z\"></path></svg>') 0 24, auto";
-    const eraserCursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"white\" stroke-width=\"2\" fill=\"rgba(255,255,255,0.3)\" /></svg>') 12 12, auto";
+    const pencilCursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z\"></path></svg>') 0 24, auto";
+    const eraserCursor = "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"white\" stroke-width=\"2\" fill=\"rgba(255,255,255,0.3)\" /></svg>') 12 12, auto";
     const canvas = new fabric.Canvas('whiteboard-canvas', { isDrawingMode: false, backgroundColor: '#1f2937' });
     const resizeCanvas = () => { canvas.setWidth(window.innerWidth); canvas.setHeight(window.innerHeight); canvas.renderAll(); };
     window.addEventListener('resize', resizeCanvas); resizeCanvas();
