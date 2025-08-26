@@ -26,20 +26,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const infoToggleBtn = document.getElementById('info-toggle-btn');
     const infoPanel = document.getElementById('info-panel');
     const infoCloseBtn = document.getElementById('info-close-btn');
-
-    // CORRIGÉ: Logique d'animation pour le panneau d'information
     const toggleInfoPanel = () => {
         const isOpen = infoPanel.classList.contains('is-open');
-        if (isOpen) {
-            infoPanel.classList.remove('is-open');
-            infoPanel.classList.add('translate-y-full');
-        } else {
-            infoPanel.classList.remove('translate-y-full');
-            // Léger délai pour que l'animation de slide commence avant celle du contenu
-            setTimeout(() => {
-                infoPanel.classList.add('is-open');
-            }, 50);
-        }
+        if (isOpen) { infoPanel.classList.remove('is-open'); infoPanel.classList.add('translate-y-full'); } 
+        else { infoPanel.classList.remove('translate-y-full'); setTimeout(() => { infoPanel.classList.add('is-open'); }, 50); }
     };
     infoToggleBtn.addEventListener('click', toggleInfoPanel);
     infoCloseBtn.addEventListener('click', toggleInfoPanel);
@@ -65,7 +55,43 @@ window.addEventListener('DOMContentLoaded', () => {
     const toolbar = document.getElementById('toolbar');
     const colorPalette = document.getElementById('color-palette');
     const brushSizePanel = document.getElementById('brush-size-panel');
-    const setActiveTool = (tool) => { currentTool = tool; canvas.isDrawingMode = (tool === 'pencil'); toolbar.querySelectorAll('.tool-btn').forEach(btn => { btn.classList.toggle('bg-blue-600', btn.dataset.tool === tool); btn.classList.toggle('text-white', btn.dataset.tool === tool); }); if (tool === 'pencil') canvas.freeDrawingCursor = pencilCursor; else if (tool === 'eraser') canvas.defaultCursor = eraserCursor; else canvas.defaultCursor = 'default'; colorPalette.classList.add('hidden'); brushSizePanel.classList.add('hidden'); };
+    
+    // CORRECTION FINALE: La logique de la fonction setActiveTool
+    const setActiveTool = (tool) => {
+        currentTool = tool;
+
+        // 1. Gérer les modes principaux du canevas
+        canvas.isDrawingMode = (tool === 'pencil');
+        canvas.selection = (tool === 'select');
+
+        // 2. Gérer l'interactivité des objets sur le canevas
+        canvas.getObjects().forEach(obj => {
+            // Les objets doivent être cliquables pour la sélection ET la gomme
+            obj.selectable = (tool === 'select');
+            obj.evented = (tool === 'select' || tool === 'eraser');
+        });
+
+        // 3. S'assurer de déselectionner l'objet actif si on change d'outil
+        if (tool !== 'select') {
+            canvas.discardActiveObject().renderAll();
+        }
+
+        // 4. Gérer les curseurs de la souris
+        if (tool === 'pencil') canvas.freeDrawingCursor = pencilCursor;
+        else if (tool === 'eraser') canvas.defaultCursor = eraserCursor;
+        else canvas.defaultCursor = 'default';
+
+        // 5. Mettre à jour le style des boutons de la barre d'outils
+        toolbar.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.classList.toggle('bg-blue-600', btn.dataset.tool === tool);
+            btn.classList.toggle('text-white', btn.dataset.tool === tool);
+        });
+
+        // 6. Cacher les panneaux d'options
+        colorPalette.classList.add('hidden');
+        brushSizePanel.classList.add('hidden');
+    };
+
     const updateBrush = () => { canvas.freeDrawingBrush.color = brushColor; canvas.freeDrawingBrush.width = brushSize; document.getElementById('color-indicator').style.backgroundColor = brushColor; document.getElementById('brush-size-label').textContent = brushSize; document.getElementById('brush-size-slider').value = brushSize; };
     toolbar.addEventListener('click', (e) => { const button = e.target.closest('button'); if (!button) return; const tool = button.dataset.tool; if (tool) setActiveTool(tool); if (button.id === 'color-picker-btn') { brushSizePanel.classList.add('hidden'); colorPalette.classList.toggle('hidden'); } if (button.id === 'brush-size-btn') { colorPalette.classList.add('hidden'); brushSizePanel.classList.toggle('hidden'); } if (button.id === 'clear-all-btn') { if (confirm('Voulez-vous vraiment tout effacer ?')) { canvas.clear(); canvas.setBackgroundColor('#1f2937'); sendMessage({ type: 'canvas:clear' }); } } });
     const colors = ['#FFFFFF', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#EC4899'];
