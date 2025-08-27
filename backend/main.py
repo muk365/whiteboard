@@ -68,11 +68,6 @@ async def get_robots_txt():
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# --- NOUVEAU: Route pour servir sitemap.xml ---
-@app.get("/sitemap.xml", response_class=FileResponse)
-async def get_sitemap():
-    return os.path.join(STATIC_DIR, "sitemap.xml")
-
 # --- Route WebSocket ---
 @app.websocket("/ws/{room_id}/{username}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, username: str):
