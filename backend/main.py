@@ -63,12 +63,15 @@ manager = ConnectionManager()
 async def get_robots_txt():
     return os.path.join(STATIC_DIR, "robots.txt")
 
-
 # --- Route HTTP principale ---
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+# --- NOUVEAU: Route pour servir sitemap.xml ---
+@app.get("/sitemap.xml", response_class=FileResponse)
+async def get_sitemap():
+    return os.path.join(STATIC_DIR, "sitemap.xml")
 
 # --- Route WebSocket ---
 @app.websocket("/ws/{room_id}/{username}")

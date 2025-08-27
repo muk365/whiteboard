@@ -1,3 +1,6 @@
 # Allow all friendly web crawlers
 User-agent: *
 Allow: /
+
+# Location of the sitemap
+Sitemap: https://whiteboard-t581.onrender.com/sitemap.xml
